@@ -1,15 +1,12 @@
 import secrets
-from typing import Annotated
 
-from fastapi import Cookie, HTTPException, Response
+from fastapi import Response
 from pydantic import BaseModel
 
-VALID_USERNAME = "user"
-VALID_PASSWORD = "password"
 SESSION_COOKIE = "session_id"
 SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
-_sessions: dict[str, str] = {}
+_sessions: dict[str, int] = {}
 
 
 class LoginRequest(BaseModel):
@@ -21,13 +18,13 @@ class UserResponse(BaseModel):
     username: str
 
 
-def create_session(username: str) -> str:
+def create_session(user_id: int) -> str:
     session_id = secrets.token_urlsafe(32)
-    _sessions[session_id] = username
+    _sessions[session_id] = user_id
     return session_id
 
 
-def get_username(session_id: str | None) -> str | None:
+def get_user_id(session_id: str | None) -> int | None:
     if not session_id:
         return None
     return _sessions.get(session_id)

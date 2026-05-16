@@ -1,21 +1,11 @@
+import { apiFetch } from "@/lib/api";
+
 export type AuthUser = {
   username: string;
 };
 
-const jsonFetch = async (url: string, init?: RequestInit) => {
-  const response = await fetch(url, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-  });
-  return response;
-};
-
 export const fetchCurrentUser = async (): Promise<AuthUser | null> => {
-  const response = await jsonFetch("/api/auth/me");
+  const response = await apiFetch("/api/auth/me");
   if (response.status === 401) {
     return null;
   }
@@ -29,7 +19,7 @@ export const login = async (
   username: string,
   password: string
 ): Promise<AuthUser> => {
-  const response = await jsonFetch("/api/auth/login", {
+  const response = await apiFetch("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
@@ -43,7 +33,7 @@ export const login = async (
 };
 
 export const logout = async (): Promise<void> => {
-  const response = await jsonFetch("/api/auth/logout", { method: "POST" });
+  const response = await apiFetch("/api/auth/logout", { method: "POST" });
   if (!response.ok) {
     throw new Error("Logout failed");
   }

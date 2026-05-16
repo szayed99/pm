@@ -1,6 +1,6 @@
 # Frontend (existing demo)
 
-This package is a **Next.js 16** App Router app with **React 19**. It is a **client-side Kanban demo**: board state lives in React state only (`useState` in `KanbanBoard`). **Auth** gates the board via `AuthGate` and `/api/auth/*` (HTTP-only session cookie). **No AI UI** yet.
+This package is a **Next.js 16** App Router app with **React 19**. **Auth** gates the board via `AuthGate` and `/api/auth/*`. **Kanban** loads/saves via `GET`/`PUT /api/board` (debounced save). **No AI UI** yet.
 
 ## Commands
 
@@ -14,7 +14,9 @@ This package is a **Next.js 16** App Router app with **React 19**. It is a **cli
 
 - `src/app/layout.tsx` — root layout; loads **Space Grotesk** and **Manrope** from `next/font/google`, applies `globals.css`.
 - `src/app/page.tsx` — home page; `AuthGate` wraps `<KanbanBoard />`.
-- `src/lib/auth.ts` — `fetchCurrentUser`, `login`, `logout` (credentials: `include`).
+- `src/lib/api.ts` — shared `apiFetch` with credentials.
+- `src/lib/auth.ts` — `fetchCurrentUser`, `login`, `logout`.
+- `src/lib/board.ts` — `fetchBoard`, `saveBoard`.
 - `src/components/AuthGate.tsx` — session check, login form, or children with `onLogout`.
 - `src/components/LoginForm.tsx` — sign-in UI.
 - `src/app/globals.css` — Tailwind v4 (`@import "tailwindcss"`), CSS variables for the product palette (aligned with root `AGENTS.md`), `body` styling.

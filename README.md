@@ -20,7 +20,9 @@ Stack: Next.js frontend (static export), FastAPI backend, Docker.
 .\scripts\start.ps1
 ```
 
-Open [http://localhost:8000](http://localhost:8000). Sign in with username `user` and password `password`. API: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`.
+Open [http://localhost:8000](http://localhost:8000). Sign in with username `user` and password `password`.
+
+API: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/board`, `PUT /api/board` (board endpoints require the session cookie).
 
 Stop:
 
@@ -54,6 +56,17 @@ npx playwright install chromium   # first time only
 npm run test:e2e                  # starts Docker if needed, tests on :8000
 ```
 
+## Backend tests
+
+From `backend/` (requires [uv](https://docs.astral.sh/uv/)):
+
+```bash
+uv sync --extra dev
+uv run pytest
+```
+
 ## Configuration
 
 API keys (e.g. OpenRouter) go in `.env` at the repo root (gitignored). Not required until the AI parts.
+
+SQLite database is created at `backend/data/pm.db` on first run (Docker uses a `pm-data` volume at `/app/data/pm.db`). Board changes persist after refresh when signed in.

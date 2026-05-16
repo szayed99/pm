@@ -14,10 +14,10 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "docker compose up --build -d",
+    command: "docker compose up --build",
     cwd: repoRoot,
     url: "http://127.0.0.1:8000",
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },
   projects: [

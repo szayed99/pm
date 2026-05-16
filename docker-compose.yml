@@ -3,4 +3,11 @@ services:
     build: .
     ports:
       - "8000:8000"
+    volumes:
+      - pm-data:/app/data
+    environment:
+      PM_DATABASE_PATH: /app/data/pm.db
     init: true
+
+volumes:
+  pm-data:

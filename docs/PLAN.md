@@ -110,10 +110,10 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] Add `docs/` write-up: entities (user, board, columns, cards), keys, and how JSON fits (e.g. board blob vs normalized tables — **choose and justify briefly**).
-- [ ] Check in a **JSON artifact** (schema shape, OpenAPI-style example, or migration seed) as agreed.
-- [ ] Note how **column rename** and **card order** map to storage.
-- [ ] **User sign-off:** checklist item or comment that owner approved the doc.
+- [x] Add `docs/` write-up: entities (user, board, columns, cards), keys, and how JSON fits (e.g. board blob vs normalized tables — **choose and justify briefly**).
+- [x] Check in a **JSON artifact** (schema shape, OpenAPI-style example, or migration seed) as agreed.
+- [x] Note how **column rename** and **card order** map to storage.
+- [x] **User sign-off:** checklist item or comment that owner approved the doc.
 
 ### Tests
 
@@ -121,8 +121,8 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Success criteria
 
-- A new contributor can implement Part 6 from the doc without guessing the data model.
-- Owner explicitly approves the documented approach.
+- [x] A new contributor can implement Part 6 from the doc without guessing the data model.
+- [x] Owner explicitly approves the documented approach.
 
 ---
 
@@ -132,15 +132,15 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] DB bootstrap on startup (create file, run migrations or `CREATE TABLE IF NOT EXISTS`).
-- [ ] Implement routes aligned with Part 5 doc (e.g. `GET/PATCH` board, or finer-grained endpoints — match the doc).
-- [ ] Map authenticated user (Part 4) to **one board per user** for MVP.
-- [ ] No secrets in repo; use `.env` for keys only where needed later.
-- [ ] `backend/` tests with in-memory or temp-file SQLite.
+- [x] DB bootstrap on startup (create file, run migrations or `CREATE TABLE IF NOT EXISTS`).
+- [x] Implement routes aligned with Part 5 doc (e.g. `GET/PATCH` board, or finer-grained endpoints — match the doc).
+- [x] Map authenticated user (Part 4) to **one board per user** for MVP.
+- [x] No secrets in repo; use `.env` for keys only where needed later.
+- [x] `backend/` tests with in-memory or temp-file SQLite.
 
 ### Tests
 
-- [ ] Unit tests for all public API behaviors: empty board, seed, rename column, move card, add/delete card, unauthorized access if applicable.
+- [x] Unit tests for all public API behaviors: empty board, seed, rename column, move card, add/delete card, unauthorized access if applicable.
 
 ### Success criteria
 
@@ -155,15 +155,15 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] Replace local-only `useState` persistence with **load on mount** and **mutations** via API (optimistic UI optional; keep MVP simple).
-- [ ] Handle loading and error states minimally (user-visible or logged).
-- [ ] Ensure drag/rename/add/delete **persist** across refresh and container restart.
-- [ ] Update e2e to run against stack with API + DB (or mocked per test strategy — **prefer real integration** for MVP).
+- [x] Replace local-only `useState` persistence with **load on mount** and **mutations** via API (optimistic UI optional; keep MVP simple).
+- [x] Handle loading and error states minimally (user-visible or logged).
+- [x] Ensure drag/rename/add/delete **persist** across refresh and container restart.
+- [x] Update e2e to run against stack with API + DB (or mocked per test strategy — **prefer real integration** for MVP).
 
 ### Tests
 
-- [ ] Frontend unit tests for API client or hooks if introduced.
-- [ ] E2e: login, change board, refresh, assert persistence.
+- [x] Frontend unit tests for API client or hooks if introduced.
+- [x] E2e: login, change board, refresh, assert persistence.
 
 ### Success criteria
 

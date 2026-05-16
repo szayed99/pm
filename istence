@@ -1,0 +1,269 @@
+warning: in the working copy of 'backend/AGENTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/uv.lock', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex b1d22cc..eb2db4f 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -59,6 +59,7 @@[m [mcover/[m
+ local_settings.py[m
+ db.sqlite3[m
+ db.sqlite3-journal[m
+[32m+[m[32mbackend/data/[m
+ [m
+ # Flask stuff:[m
+ instance/[m
+[1mdiff --git a/README.md b/README.md[m
+[1mindex beb9888..a8694f8 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -20,7 +20,9 @@[m [mStack: Next.js frontend (static export), FastAPI backend, Docker.[m
+ .\scripts\start.ps1[m
+ ```[m
+ [m
+[31m-Open [http://localhost:8000](http://localhost:8000). Sign in with username `user` and password `password`. API: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`.[m
+[32m+[m[32mOpen [http://localhost:8000](http://localhost:8000). Sign in with username `user` and password `password`.[m
+[32m+[m
+[32m+[m[32mAPI: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/board`, `PUT /api/board` (board endpoints require the session cookie).[m
+ [m
+ Stop:[m
+ [m
+[36m@@ -54,6 +56,17 @@[m [mnpx playwright install chromium   # first time only[m
+ npm run test:e2e                  # starts Docker if needed, tests on :8000[m
+ ```[m
+ [m
+[32m+[m[32m## Backend tests[m
+[32m+[m
+[32m+[m[32mFrom `backend/` (requires [uv](https://docs.astral.sh/uv/)):[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32muv sync --extra dev[m
+[32m+[m[32muv run pytest[m
+[32m+[m[32m```[m
+[32m+[m
+ ## Configuration[m
+ [m
+ API keys (e.g. OpenRouter) go in `.env` at the repo root (gitignored). Not required until the AI parts.[m
+[32m+[m
+[32m+[m[32mSQLite database is created at `backend/data/pm.db` on first run (Docker uses a `pm-data` volume at `/app/data/pm.db`). Board changes persist after refresh when signed in.[m
+[1mdiff --git a/backend/AGENTS.md b/backend/AGENTS.md[m
+[1mindex 8a47eee..559664e 100644[m
+[1m--- a/backend/AGENTS.md[m
+[1m+++ b/backend/AGENTS.md[m
+[36m@@ -12,11 +12,22 @@[m [mPython **3.12+**, packaged with **[uv](https://docs.astral.sh/uv/)**. App packag[m
+ [m
+ - `GET /api/health` — `{"status":"ok"}`[m
+ - `GET /api/hello` — `{"message":"Hello from FastAPI"}`[m
+[31m-- `POST /api/auth/login` — body `{username, password}`; sets `session_id` HTTP-only cookie[m
+[32m+[m[32m- `POST /api/auth/login` — body `{username, password}`; sets `session_id` HTTP-only cookie (verified against SQLite `users`)[m
+ - `GET /api/auth/me` — current user or `401`[m
+ - `POST /api/auth/logout` — clears session[m
+[32m+[m[32m- `GET /api/board` — authenticated; returns `BoardData` JSON (seeds on first read)[m
+[32m+[m[32m- `PUT /api/board` — authenticated; replaces board document[m
+ [m
+[31m-See `docs/auth.md` for session details. MVP credentials: `user` / `password`.[m
+[32m+[m[32mSee `docs/auth.md` and `docs/database.md`. MVP credentials: `user` / `password`. DB file: `backend/data/pm.db` (override with `PM_DATABASE_PATH`).[m
+[32m+[m
+[32m+[m[32m## Tests[m
+[32m+[m
+[32m+[m[32mFrom `backend/`:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32muv sync --extra dev[m
+[32m+[m[32muv run pytest[m
+[32m+[m[32m```[m
+ [m
+ ## Run locally[m
+ [m
+[1mdiff --git a/backend/pm_backend/auth.py b/backend/pm_backend/auth.py[m
+[1mindex 3cb6430..fe8d0c2 100644[m
+[1m--- a/backend/pm_backend/auth.py[m
+[1m+++ b/backend/pm_backend/auth.py[m
+[36m@@ -1,15 +1,12 @@[m
+ import secrets[m
+[31m-from typing import Annotated[m
+ [m
+[31m-from fastapi import Cookie, HTTPException, Response[m
+[32m+[m[32mfrom fastapi import Response[m
+ from pydantic import BaseModel[m
+ [m
+[31m-VALID_USERNAME = "user"[m
+[31m-VALID_PASSWORD = "password"[m
+ SESSION_COOKIE = "session_id"[m
+ SESSION_MAX_AGE = 60 * 60 * 24 * 7[m
+ [m
+[31m-_sessions: dict[str, str] = {}[m
+[32m+[m[32m_sessions: dict[str, int] = {}[m
+ [m
+ [m
+ class LoginRequest(BaseModel):[m
+[36m@@ -21,13 +18,13 @@[m [mclass UserResponse(BaseModel):[m
+     username: str[m
+ [m
+ [m
+[31m-def create_session(username: str) -> str:[m
+[32m+[m[32mdef create_session(user_id: int) -> str:[m
+     session_id = secrets.token_urlsafe(32)[m
+[31m-    _sessions[session_id] = username[m
+[32m+[m[32m    _sessions[session_id] = user_id[m
+     return session_id[m
+ [m
+ [m
+[31m-def get_username(session_id: str | None) -> str | None:[m
+[32m+[m[32mdef get_user_id(session_id: str | None) -> int | None:[m
+     if not session_id:[m
+         return None[m
+     return _sessions.get(session_id)[m
+[1mdiff --git a/backend/pm_backend/main.py b/backend/pm_backend/main.py[m
+[1mindex f9a3199..11c27a3 100644[m
+[1m--- a/backend/pm_backend/main.py[m
+[1m+++ b/backend/pm_backend/main.py[m
+[36m@@ -1,7 +1,8 @@[m
+[32m+[m[32mfrom contextlib import asynccontextmanager[m
+ from pathlib import Path[m
+ from typing import Annotated[m
+ [m
+[31m-from fastapi import Cookie, FastAPI, HTTPException, Response[m
+[32m+[m[32mfrom fastapi import Cookie, Depends, FastAPI, HTTPException, Response[m
+ from fastapi.staticfiles import StaticFiles[m
+ [m
+ from pm_backend.auth import ([m
+[36m@@ -11,9 +12,13 @@[m [mfrom pm_backend.auth import ([m
+     clear_session,[m
+     clear_session_cookie,[m
+     create_session,[m
+[31m-    get_username,[m
+[32m+[m[32m    get_user_id,[m
+     set_session_cookie,[m
+ )[m
+[32m+[m[32mfrom pm_backend.board import get_board, save_board[m
+[32m+[m[32mfrom pm_backend.database import get_username_by_id, init_db, verify_user[m
+[32m+[m[32mfrom pm_backend.deps import require_user_id[m
+[32m+[m[32mfrom pm_backend.models import BoardData[m
+ [m
+ BACKEND_DIR = Path(__file__).resolve().parent.parent[m
+ REPO_ROOT = BACKEND_DIR.parent[m
+[36m@@ -32,7 +37,14 @@[m [mdef resolve_frontend_dir() -> Path:[m
+ [m
+ FRONTEND_DIR = resolve_frontend_dir()[m
+ [m
+[31m-app = FastAPI(title="PM Kanban API")[m
+[32m+[m
+[32m+[m[32m@asynccontextmanager[m
+[32m+[m[32masync def lifespan(_app: FastAPI):[m
+[32m+[m[32m    init_db()[m
+[32m+[m[32m    yield[m
+[32m+[m
+[32m+[m
+[32m+[m[32mapp = FastAPI(title="PM Kanban API", lifespan=lifespan)[m
+ [m
+ [m
+ @app.get("/api/health")[m
+[36m@@ -47,9 +59,10 @@[m [mdef hello() -> dict[str, str]:[m
+ [m
+ @app.post("/api/auth/login", response_model=UserResponse)[m
+ def login(body: LoginRequest, response: Response) -> UserResponse:[m
+[31m-    if body.username != "user" or body.password != "password":[m
+[32m+[m[32m    user_id = verify_user(body.username, body.password)[m
+[32m+[m[32m    if user_id is None:[m
+         raise HTTPException(status_code=401, detail="Invalid credentials")[m
+[31m-    session_id = create_session(body.username)[m
+[32m+[m[32m    session_id = create_session(user_id)[m
+     set_session_cookie(response, session_id)[m
+     return UserResponse(username=body.username)[m
+ [m
+[36m@@ -58,8 +71,11 @@[m [mdef login(body: LoginRequest, response: Response) -> UserResponse:[m
+ def me([m
+     session_id: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,[m
+ ) -> UserResponse:[m
+[31m-    username = get_username(session_id)[m
+[31m-    if not username:[m
+[32m+[m[32m    user_id = get_user_id(session_id)[m
+[32m+[m[32m    if user_id is None:[m
+[32m+[m[32m        raise HTTPException(status_code=401, detail="Not authenticated")[m
+[32m+[m[32m    username = get_username_by_id(user_id)[m
+[32m+[m[32m    if username is None:[m
+         raise HTTPException(status_code=401, detail="Not authenticated")[m
+     return UserResponse(username=username)[m
+ [m
+[36m@@ -74,4 +90,20 @@[m [mdef logout([m
+     return {"ok": True}[m
+ [m
+ [m
+[32m+[m[32m@app.get("/api/board", response_model=BoardData)[m
+[32m+[m[32mdef read_board(user_id: Annotated[int, Depends(require_user_id)]) -> BoardData:[m
+[32m+[m[32m    return get_board(user_id)[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@app.put("/api/board", response_model=BoardData)[m
+[32m+[m[32mdef update_board([m
+[32m+[m[32m    board: BoardData,[m
+[32m+[m[32m    user_id: Annotated[int, Depends(require_user_id)],[m
+[32m+[m[32m) -> BoardData:[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        return save_board(user_id, board)[m
+[32m+[m[32m    except ValueError as exc:[m
+[32m+[m[32m        raise HTTPException(status_code=422, detail=str(exc)) from exc[m
+[32m+[m
+[32m+[m
+ app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")[m
+[1mdiff --git a/backend/pyproject.toml b/backend/pyproject.toml[m
+[1mindex e6a78e0..f791689 100644[m
+[1m--- a/backend/pyproject.toml[m
+[1m+++ b/backend/pyproject.toml[m
+[36m@@ -4,13 +4,23 @@[m [mversion = "0.1.0"[m
+ description = "FastAPI backend for the PM Kanban MVP"[m
+ requires-python = ">=3.12"[m
+ dependencies = [[m
+[32m+[m[32m  "bcrypt>=4.2.0",[m
+   "fastapi>=0.115.6",[m
+[31m-  "uvicorn[standard]>=0.34.0",[m
+[32m+[m[32m  "uvicorn>=0.34.0",[m
+ ][m
+ [m
+[32m+[m[32m[project.optional-dependencies][m
+[32m+[m[32mdev = ["httpx>=0.27.0", "pytest>=8.3.0"][m
+[32m+[m
+[32m+[m[32m[tool.pytest.ini_options][m
+[32m+[m[32mtestpaths = ["tests"][m
+[32m+[m
+ [build-system][m
+ requires = ["hatchling"][m
+ build-backend = "hatchling.build"[m
+ [m
+ [tool.hatch.build.targets.wheel][m
+ packages = ["pm_backend"][m
+[32m+[m
+[32m+[m[32m[tool.hatch.build.targets.wheel.force-include][m
+[32m+[m[32m"pm_backend/seed" = "pm_backend/seed"[m
+[1mdiff --git a/backend/uv.lock b/backend/uv.lock[m
+[1mindex fa463eb..0dc2394 100644[m
+[1m--- a/backend/uv.lock[m
+[1m+++ b/backend/uv.lock[m
+[36m@@ -33,6 +33,81 @@[m [mwheels = [[m
+     { url = "https://files.pythonhosted.org/packages/da/42/e921fccf5015463e32a3cf6ee7f980a6ed0f395ceeaa45060b61d86486c2/anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708", size = 114353, upload-time = "2026-03-24T12:59:08.246Z" },[m
+ ][m
+ [m
+[32m+[m[32m[[package]][m
+[32m+[m[32mname = "bcrypt"[m
+[32m+[m[32mversion = "5.0.0"[m
+[32m+[m[32msource = { registry = "https://pypi.org/simple" }[m
+[32m+[m[32msdist = { url = "https://files.pythonhosted.org/packages/d4/36/3329e2518d70ad8e2e5817d5a4cac6bba05a47767ec416c7d020a965f408/bcrypt-5.0.0.tar.gz", hash = "sha256:f748f7c2d6fd375cc93d3fba7ef4a9e3a092421b8dbf34d8d4dc06be9492dfdd", size = 25386, upload-time = "2025-09-25T19:50:47.829Z" }[m
+[32m+[m[32mwheels = [[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/13/85/3e65e01985fddf25b64ca67275bb5bdb4040bd1a53b66d355c6c37c8a680/bcrypt-5.0.0-cp313-cp313t-macosx_10_12_universal2.whl", hash = "sha256:f3c08197f3039bec79cee59a606d62b96b16669cff3949f21e74796b6e3cd2be", size = 481806, upload-time = "2025-09-25T19:49:05.102Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/44/dc/01eb79f12b177017a726cbf78330eb0eb442fae0e7b3dfd84ea2849552f3/bcrypt-5.0.0-cp313-cp313t-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:200af71bc25f22006f4069060c88ed36f8aa4ff7f53e67ff04d2ab3f1e79a5b2", size = 268626, upload-time = "2025-09-25T19:49:06.723Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/8c/cf/e82388ad5959c40d6afd94fb4743cc077129d45b952d46bdc3180310e2df/bcrypt-5.0.0-cp313-cp313t-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:baade0a5657654c2984468efb7d6c110db87ea63ef5a4b54732e7e337253e44f", size = 271853, upload-time = "2025-09-25T19:49:08.028Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/ec/86/7134b9dae7cf0efa85671651341f6afa695857fae172615e960fb6a466fa/bcrypt-5.0.0-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:c58b56cdfb03202b3bcc9fd8daee8e8e9b6d7e3163aa97c631dfcfcc24d36c86", size = 269793, upload-time = "2025-09-25T19:49:09.727Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/cc/82/6296688ac1b9e503d034e7d0614d56e80c5d1a08402ff856a4549cb59207/bcrypt-5.0.0-cp313-cp313t-manylinux_2_28_armv7l.manylinux_2_31_armv7l.whl", hash = "sha256:4bfd2a34de661f34d0bda43c3e4e79df586e4716ef401fe31ea39d69d581ef23", size = 289930, upload-time = "2025-09-25T19:49:11.204Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/d1/18/884a44aa47f2a3b88dd09bc05a1e40b57878ecd111d17e5bba6f09f8bb77/bcrypt-5.0.0-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:ed2e1365e31fc73f1825fa830f1c8f8917ca1b3ca6185773b349c20fd606cec2", size = 272194, upload-time = "2025-09-25T19:49:12.524Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/0e/8f/371a3ab33c6982070b674f1788e05b656cfbf5685894acbfef0c65483a59/bcrypt-5.0.0-cp313-cp313t-manylinux_2_34_aarch64.whl", hash = "sha256:83e787d7a84dbbfba6f250dd7a5efd689e935f03dd83b0f919d39349e1f23f83", size = 269381, upload-time = "2025-09-25T19:49:14.308Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/b1/34/7e4e6abb7a8778db6422e88b1f06eb07c47682313997ee8a8f9352e5a6f1/bcrypt-5.0.0-cp313-cp313t-manylinux_2_34_x86_64.whl", hash = "sha256:137c5156524328a24b9fac1cb5db0ba618bc97d11970b39184c1d87dc4bf1746", size = 271750, upload-time = "2025-09-25T19:49:15.584Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/c0/1b/54f416be2499bd72123c70d98d36c6cd61a4e33d9b89562c22481c81bb30/bcrypt-5.0.0-cp313-cp313t-musllinux_1_1_aarch64.whl", hash = "sha256:38cac74101777a6a7d3b3e3cfefa57089b5ada650dce2baf0cbdd9d65db22a9e", size = 303757, upload-time = "2025-09-25T19:49:17.244Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/13/62/062c24c7bcf9d2826a1a843d0d605c65a755bc98002923d01fd61270705a/bcrypt-5.0.0-cp313-cp313t-musllinux_1_1_x86_64.whl", hash = "sha256:d8d65b564ec849643d9f7ea05c6d9f0cd7ca23bdd4ac0c2dbef1104ab504543d", size = 306740, upload-time = "2025-09-25T19:49:18.693Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/d5/c8/1fdbfc8c0f20875b6b4020f3c7dc447b8de60aa0be5faaf009d24242aec9/bcrypt-5.0.0-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:741449132f64b3524e95cd30e5cd3343006ce146088f074f31ab26b94e6c75ba", size = 334197, upload-time = "2025-09-25T19:49:20.523Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/a6/c1/8b84545382d75bef226fbc6588af0f7b7d095f7cd6a670b42a86243183cd/bcrypt-5.0.0-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:212139484ab3207b1f0c00633d3be92fef3c5f0af17cad155679d03ff2ee1e41", size = 352974, upload-time = "2025-09-25T19:49:22.254Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/10/a6/ffb49d4254ed085e62e3e5dd05982b4393e32fe1e49bb1130186617c29cd/bcrypt-5.0.0-cp313-cp313t-win32.whl", hash = "sha256:9d52ed507c2488eddd6a95bccee4e808d3234fa78dd370e24bac65a21212b861", size = 148498, upload-time = "2025-09-25T19:49:24.134Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/48/a9/259559edc85258b6d5fc5471a62a3299a6aa37a6611a169756bf4689323c/bcrypt-5.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:f6984a24db30548fd39a44360532898c33528b74aedf81c26cf29c51ee47057e", size = 145853, upload-time = "2025-09-25T19:49:25.702Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/2d/df/9714173403c7e8b245acf8e4be8876aac64a209d1b392af457c79e60492e/bcrypt-5.0.0-cp313-cp313t-win_arm64.whl", hash = "sha256:9fffdb387abe6aa775af36ef16f55e318dcda4194ddbf82007a6f21da29de8f5", size = 139626, upload-time = "2025-09-25T19:49:26.928Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/f8/14/c18006f91816606a4abe294ccc5d1e6f0e42304df5a33710e9e8e95416e1/bcrypt-5.0.0-cp314-cp314t-macosx_10_12_universal2.whl", hash = "sha256:4870a52610537037adb382444fefd3706d96d663ac44cbb2f37e3919dca3d7ef", size = 481862, upload-time = "2025-09-25T19:49:28.365Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/67/49/dd074d831f00e589537e07a0725cf0e220d1f0d5d8e85ad5bbff251c45aa/bcrypt-5.0.0-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:48f753100931605686f74e27a7b49238122aa761a9aefe9373265b8b7aa43ea4", size = 268544, upload-time = "2025-09-25T19:49:30.39Z" },[m
+[32m+[m[32m    { url = "https://files.pythonhosted.org/packages/f5/91/50ccba088b8c474545b034a1424d05195d9fcbaaf802ab8bfe2be5a4e0d7/bcrypt-5.0.0-cp314-cp314t-manylinux2014

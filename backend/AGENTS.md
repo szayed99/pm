@@ -12,11 +12,22 @@ Python **3.12+**, packaged with **[uv](https://docs.astral.sh/uv/)**. App packag
 
 - `GET /api/health` — `{"status":"ok"}`
 - `GET /api/hello` — `{"message":"Hello from FastAPI"}`
-- `POST /api/auth/login` — body `{username, password}`; sets `session_id` HTTP-only cookie
+- `POST /api/auth/login` — body `{username, password}`; sets `session_id` HTTP-only cookie (verified against SQLite `users`)
 - `GET /api/auth/me` — current user or `401`
 - `POST /api/auth/logout` — clears session
+- `GET /api/board` — authenticated; returns `BoardData` JSON (seeds on first read)
+- `PUT /api/board` — authenticated; replaces board document
 
-See `docs/auth.md` for session details. MVP credentials: `user` / `password`.
+See `docs/auth.md` and `docs/database.md`. MVP credentials: `user` / `password`. DB file: `backend/data/pm.db` (override with `PM_DATABASE_PATH`).
+
+## Tests
+
+From `backend/`:
+
+```bash
+uv sync --extra dev
+uv run pytest
+```
 
 ## Run locally
 
