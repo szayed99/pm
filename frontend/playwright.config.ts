@@ -12,6 +12,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:8000",
     trace: "retain-on-failure",
+    viewport: { width: 1500, height: 900 },
   },
   webServer: {
     command: "docker compose up --build",

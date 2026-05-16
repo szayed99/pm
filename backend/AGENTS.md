@@ -17,6 +17,10 @@ Python **3.12+**, packaged with **[uv](https://docs.astral.sh/uv/)**. App packag
 - `POST /api/auth/logout` — clears session
 - `GET /api/board` — authenticated; returns `BoardData` JSON (seeds on first read)
 - `PUT /api/board` — authenticated; replaces board document
+- `POST /api/ai/test` — authenticated; OpenRouter smoke call (default prompt: 2+2)
+- `POST /api/ai/chat` — authenticated; Kanban-aware chat with structured `{ message, board }` response
+
+OpenRouter: `OPENROUTER_API_KEY` and optional `OPENROUTER_MODEL` from repo `.env` (see `pm_backend/config.py`, `pm_backend/ai.py`). Live test: `uv run pytest tests/test_ai_live.py` (skipped without key).
 
 See `docs/auth.md` and `docs/database.md`. MVP credentials: `user` / `password`. DB file: `backend/data/pm.db` (override with `PM_DATABASE_PATH`).
 

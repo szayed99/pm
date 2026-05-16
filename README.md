@@ -22,7 +22,7 @@ Stack: Next.js frontend (static export), FastAPI backend, Docker.
 
 Open [http://localhost:8000](http://localhost:8000). Sign in with username `user` and password `password`.
 
-API: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/board`, `PUT /api/board` (board endpoints require the session cookie).
+API: `GET /api/health`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/board`, `PUT /api/board`, `POST /api/ai/test`, `POST /api/ai/chat` (board and AI endpoints require the session cookie).
 
 Stop:
 
@@ -67,6 +67,21 @@ uv run pytest
 
 ## Configuration
 
-API keys (e.g. OpenRouter) go in `.env` at the repo root (gitignored). Not required until the AI parts.
+Create `.env` at the repo root (gitignored):
+
+```
+OPENROUTER_API_KEY=your-key-here
+OPENROUTER_MODEL=openai/gpt-oss-120b:free
+```
+
+`OPENROUTER_MODEL` is optional (defaults to `openai/gpt-oss-120b:free`).
+
+**AI smoke test** (with key in `.env`):
+
+```bash
+cd backend && uv sync --extra dev && uv run python ../scripts/ai_ping.py
+```
+
+Or sign in and `POST /api/ai/test` with an empty JSON body `{}`.
 
 SQLite database is created at `backend/data/pm.db` on first run (Docker uses a `pm-data` volume at `/app/data/pm.db`). Board changes persist after refresh when signed in.

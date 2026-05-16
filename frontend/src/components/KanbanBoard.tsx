@@ -18,11 +18,17 @@ import { createId, moveCard, type BoardData } from "@/lib/kanban";
 
 const SAVE_DEBOUNCE_MS = 400;
 
-type KanbanBoardProps = {
-  onLogout?: () => void | Promise<void>;
+type BoardSync = {
+  board: BoardData;
+  id: number;
 };
 
-export const KanbanBoard = ({ onLogout }: KanbanBoardProps) => {
+type KanbanBoardProps = {
+  onLogout?: () => void | Promise<void>;
+  boardSync?: BoardSync | null;
+};
+
+export const KanbanBoard = ({ onLogout, boardSync }: KanbanBoardProps) => {
   const [board, setBoard] = useState<BoardData | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading"
@@ -36,6 +42,16 @@ export const KanbanBoard = ({ onLogout }: KanbanBoardProps) => {
       activationConstraint: { distance: 6 },
     })
   );
+
+  useEffect(() => {
+    if (!boardSync) {
+      return;
+    }
+    skipNextSave.current = true;
+    setBoard(boardSync.board);
+    setLoadState("ready");
+    setSaveError(null);
+  }, [boardSync?.id]);
 
   useEffect(() => {
     let cancelled = false;

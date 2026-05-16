@@ -1,12 +1,12 @@
 "use client";
 
 import { AuthGate } from "@/components/AuthGate";
-import { KanbanBoard } from "@/components/KanbanBoard";
+import { KanbanWorkspace } from "@/components/KanbanWorkspace";
 
 export default function Home() {
   return (
     <AuthGate>
-      {({ onLogout }) => <KanbanBoard onLogout={onLogout} />}
+      {({ onLogout }) => <KanbanWorkspace onLogout={onLogout} />}
     </AuthGate>
   );
 }

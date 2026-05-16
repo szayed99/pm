@@ -178,13 +178,13 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] HTTP client in backend for OpenRouter; read model name from config/env.
-- [ ] Dedicated test or script gated on env var presence (skip in CI without key, or use recorded mock — **document**).
-- [ ] No key committed; document required env in README.
+- [x] HTTP client in backend for OpenRouter; read model name from config/env.
+- [x] Dedicated test or script gated on env var presence (skip in CI without key, or use recorded mock — **document**).
+- [x] No key committed; document required env in README.
 
 ### Tests
 
-- [ ] Backend test or integration script: when `OPENROUTER_API_KEY` is set, assertion on response shape or content for trivial prompt.
+- [x] Backend test or integration script: when `OPENROUTER_API_KEY` is set, assertion on response shape or content for trivial prompt.
 
 ### Success criteria
 
@@ -199,15 +199,15 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] Define response schema (JSON Schema or FastAPI/Pydantic model) for “message + optional patch / full board”.
-- [ ] Implement prompt assembly: board snapshot, history, user query.
-- [ ] Parse model output safely; reject malformed with clear API error.
-- [ ] Tests with **mocked** OpenRouter responses for: text-only, text + board update, invalid payload.
+- [x] Define response schema (JSON Schema or FastAPI/Pydantic model) for “message + optional patch / full board”.
+- [x] Implement prompt assembly: board snapshot, history, user query.
+- [x] Parse model output safely; reject malformed with clear API error.
+- [x] Tests with **mocked** OpenRouter responses for: text-only, text + board update, invalid payload.
 
 ### Tests
 
-- [ ] Unit tests for prompt builder and response parser.
-- [ ] Integration test with mock HTTP layer for OpenRouter.
+- [x] Unit tests for prompt builder and response parser.
+- [x] Integration test with mock HTTP layer for OpenRouter.
 
 ### Success criteria
 
@@ -222,16 +222,16 @@ Open product decisions (auth shape, JSON storage shape, chat history) can stay *
 
 ### Checklist
 
-- [ ] Sidebar component: message list, input, send, loading state.
-- [ ] Wire to Part 9 endpoint; display errors sanely.
-- [ ] On structured board update: **refetch** board or apply returned patch; Kanban reflects changes **without manual refresh**.
-- [ ] Respect login gate (Part 4).
-- [ ] Visual polish: spacing, typography, colors from `globals.css`.
+- [x] Sidebar component: message list, input, send, loading state.
+- [x] Wire to Part 9 endpoint; display errors sanely.
+- [x] On structured board update: **refetch** board or apply returned patch; Kanban reflects changes **without manual refresh**.
+- [x] Respect login gate (Part 4).
+- [x] Visual polish: spacing, typography, colors from `globals.css`.
 
 ### Tests
 
-- [ ] Component tests for sidebar behavior with mocked fetch.
-- [ ] E2e: login, send message (stub backend or test env) and assert board updates — **or** document Playwright stub strategy.
+- [x] Component tests for sidebar behavior with mocked fetch.
+- [x] E2e: login, send message (stub backend or test env) and assert board updates — **or** document Playwright stub strategy.
 
 ### Success criteria
 

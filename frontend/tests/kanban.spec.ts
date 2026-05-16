@@ -22,21 +22,24 @@ test("adds a card to a column", async ({ page }) => {
 test("moves a card between columns", async ({ page }) => {
   const card = page.getByTestId("card-card-1");
   const targetColumn = page.getByTestId("column-col-review");
+  await card.scrollIntoViewIfNeeded();
+  await targetColumn.scrollIntoViewIfNeeded();
+
   const cardBox = await card.boundingBox();
   const columnBox = await targetColumn.boundingBox();
   if (!cardBox || !columnBox) {
     throw new Error("Unable to resolve drag coordinates.");
   }
 
-  await page.mouse.move(
-    cardBox.x + cardBox.width / 2,
-    cardBox.y + cardBox.height / 2
-  );
+  const startX = cardBox.x + cardBox.width / 2;
+  const startY = cardBox.y + cardBox.height / 2;
+  await page.mouse.move(startX, startY);
   await page.mouse.down();
+  await page.mouse.move(startX + 10, startY, { steps: 3 });
   await page.mouse.move(
     columnBox.x + columnBox.width / 2,
     columnBox.y + 120,
-    { steps: 12 }
+    { steps: 16 }
   );
   await page.mouse.up();
   await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();

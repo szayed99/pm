@@ -51,3 +51,5 @@ This package is a **Next.js 16** App Router app with **React 19**. **Auth** gate
 - The UI assumes **five columns** with stable **`col-*` ids** in `initialData`; backend persistence should preserve or map these ids if the server becomes the source of truth.
 - Styling is **Tailwind v4** with **CSS variables** in `globals.css`; keep new UI (e.g. auth, AI sidebar) consistent with those tokens.
 - Production-like runs use the **static export** served by FastAPI at `/` (port 8000). Use `npm run dev` only for UI development.
+- `KanbanWorkspace` — board + `AiChatSidebar`; `src/lib/ai.ts` calls `POST /api/ai/chat`.
+- E2e AI test mocks `/api/ai/chat` in `tests/ai-chat.spec.ts` (see Playwright `page.route`).

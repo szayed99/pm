@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KanbanAssistantResponse",
+  "description": "Structured output from POST /api/ai/chat",
+  "type": "object",
+  "required": ["message", "board"],
+  "additionalProperties": false,
+  "properties": {
+    "message": {
+      "type": "string",
+      "description": "Assistant reply shown in chat"
+    },
+    "board": {
+      "description": "Full BoardData after changes, or null if unchanged. Same shape as docs/kanban-board.schema.json"
+    }
+  }
+}
