@@ -15,6 +15,14 @@ export type BoardData = {
   cards: Record<string, Card>;
 };
 
+export const COLUMN_ACCENT_COLORS = [
+  "var(--gray-text)",
+  "var(--primary-blue)",
+  "var(--accent-yellow)",
+  "var(--secondary-purple)",
+  "var(--column-green)",
+];
+
 export const initialData: BoardData = {
   columns: [
     { id: "col-backlog", title: "Backlog", cardIds: ["card-1", "card-2"] },

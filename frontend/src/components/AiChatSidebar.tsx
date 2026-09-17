@@ -55,7 +55,7 @@ export const AiChatSidebar = ({ onBoardUpdate, onClose }: AiChatSidebarProps) =>
       data-testid="ai-chat-sidebar"
       role="dialog"
       aria-label="Board chat"
-      className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/40 bg-white/65 shadow-[var(--shadow)] backdrop-blur-xl"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border border-white/40 bg-white/65 shadow-[var(--shadow)] backdrop-blur-xl"
     >
       <header className="flex items-start justify-between gap-3 border-b border-white/30 bg-white/20 px-5 py-4 backdrop-blur-sm">
         <div>

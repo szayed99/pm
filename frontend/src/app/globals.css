@@ -6,6 +6,7 @@
   --secondary-purple: #753991;
   --navy-dark: #032147;
   --gray-text: #888888;
+  --column-green: #2f9e63;
   --surface: #f7f8fb;
   --surface-strong: #ffffff;
   --stroke: rgba(3, 33, 71, 0.08);
@@ -20,6 +21,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {

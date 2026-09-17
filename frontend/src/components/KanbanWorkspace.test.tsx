@@ -3,7 +3,22 @@ import userEvent from "@testing-library/user-event";
 import { KanbanWorkspace } from "@/components/KanbanWorkspace";
 
 vi.mock("@/components/KanbanBoard", () => ({
-  KanbanBoard: () => <div data-testid="kanban-board" />,
+  KanbanBoard: ({
+    chatPanel,
+    onOpenChat,
+  }: {
+    chatPanel?: React.ReactNode;
+    onOpenChat?: () => void;
+  }) => (
+    <div data-testid="kanban-board">
+      {chatPanel}
+      {!chatPanel && onOpenChat ? (
+        <button type="button" data-testid="ai-chat-open" onClick={onOpenChat}>
+          Open
+        </button>
+      ) : null}
+    </div>
+  ),
 }));
 
 vi.mock("@/components/AiChatSidebar", () => ({
@@ -17,7 +32,7 @@ vi.mock("@/components/AiChatSidebar", () => ({
 }));
 
 describe("KanbanWorkspace", () => {
-  it("opens and closes the AI chat pop-up", async () => {
+  it("opens and closes the AI chat beside the board", async () => {
     render(<KanbanWorkspace onLogout={async () => {}} />);
 
     expect(screen.queryByTestId("ai-chat-sidebar")).not.toBeInTheDocument();
