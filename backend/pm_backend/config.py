@@ -8,7 +8,7 @@ REPO_ROOT = BACKEND_DIR.parent
 
 load_dotenv(REPO_ROOT / ".env")
 
-DEFAULT_OPENROUTER_MODEL = "openai/gpt-oss-120b:free"
+DEFAULT_OPENROUTER_MODEL = "nex-agi/nex-n2.5-pro:free"
 
 
 def get_openrouter_api_key() -> str | None:

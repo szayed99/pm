@@ -71,10 +71,10 @@ Create `.env` at the repo root (gitignored):
 
 ```
 OPENROUTER_API_KEY=your-key-here
-OPENROUTER_MODEL=openai/gpt-oss-120b:free
+OPENROUTER_MODEL=nex-agi/nex-n2.5-pro:free
 ```
 
-`OPENROUTER_MODEL` is optional (defaults to `openai/gpt-oss-120b:free`).
+`OPENROUTER_MODEL` is optional (defaults to `nex-agi/nex-n2.5-pro:free`).
 
 **AI smoke test** (with key in `.env`):
 

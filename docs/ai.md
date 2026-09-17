@@ -5,7 +5,7 @@
 Repo root `.env` (gitignored):
 
 - `OPENROUTER_API_KEY` — required for live calls
-- `OPENROUTER_MODEL` — optional; default `openai/gpt-oss-120b:free`
+- `OPENROUTER_MODEL` — optional; default `nex-agi/nex-n2.5-pro:free`
 
 Docker Compose loads `.env` via `env_file`.
 
